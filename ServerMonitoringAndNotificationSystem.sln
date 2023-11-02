@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerStatisticsCollectionService", "ServerStatisticsCollectionService\ServerStatisticsCollectionService.csproj", "{7E594ACB-259D-4A93-9E8B-DC427076ED95}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerStatisticsCollection", "ServerStatisticsCollection\ServerStatisticsCollection.csproj", "{7E594ACB-259D-4A93-9E8B-DC427076ED95}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageQueueClient", "MessageQueueClient\MessageQueueClient.csproj", "{6A8D0C20-A64B-4D8A-BA2D-132DA300D851}"
 EndProject
