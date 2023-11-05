@@ -8,7 +8,6 @@ namespace MessageQueueClient;
 public class RabbitMQPublisher : IMessageQueuePublisher
 {
     private readonly RabbitMQConfig _config;
-
     private readonly IConnectionFactory _connectionFactory;
 
     public RabbitMQPublisher(IOptions<RabbitMQConfig> options, IConnectionFactory connectionFactory)
