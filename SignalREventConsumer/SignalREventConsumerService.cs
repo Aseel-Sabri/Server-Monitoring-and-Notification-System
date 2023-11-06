@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Polly;
+using Polly.Retry;
 
 namespace SignalREventConsumer;
 
@@ -15,6 +16,23 @@ public class SignalREventConsumerService : BackgroundService
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        HandleHubEvents();
+
+        var policy = Policy
+            .Handle<Exception>()
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+        await StartHubConnection(policy, stoppingToken);
+
+        _hubConnection.Closed += async (error) =>
+        {
+            _logger.LogWarning("Connection closed. Retrying...");
+            await StartHubConnection(policy, stoppingToken);
+        };
+    }
+
+    private void HandleHubEvents()
     {
         _hubConnection.On<string>("CpuAnomaly",
             serverIdentifier => { Console.WriteLine($"CPU Anomaly Alert received for server: {serverIdentifier}"); });
@@ -36,11 +54,10 @@ public class SignalREventConsumerService : BackgroundService
             {
                 Console.WriteLine($"Memory High Usage Alert received for server: {serverIdentifier}");
             });
+    }
 
-        var policy = Policy
-            .Handle<Exception>()
-            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
-
+    private async Task StartHubConnection(AsyncRetryPolicy policy, CancellationToken stoppingToken)
+    {
         try
         {
             await policy.ExecuteAsync(async () =>
@@ -52,6 +69,7 @@ public class SignalREventConsumerService : BackgroundService
         catch (Exception ex)
         {
             _logger.LogError($"All retry attempts failed. Unable to connect to SignalR hub. Error: {ex.Message}");
+            throw;
         }
     }
 }
