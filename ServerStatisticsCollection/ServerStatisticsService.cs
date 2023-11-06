@@ -33,9 +33,17 @@ public class ServerStatisticsService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var serverStatistics = GetServerStatistics();
-            _publisher.PublishMessage(serverStatistics, _topic);
-            _logger.LogInformation($"{DateTime.Now}: Message Sent");
+            try
+            {
+                var serverStatistics = GetServerStatistics();
+                _publisher.PublishMessage(serverStatistics, _topic);
+                _logger.LogInformation($"{DateTime.Now}: Message Sent");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw;
+            }
 
             await Task.Delay(_samplingIntervalMs, stoppingToken);
         }
@@ -43,7 +51,7 @@ public class ServerStatisticsService : BackgroundService
 
     private ServerStatistics GetServerStatistics()
     {
-        var cpuUsage = _cpuCounter.NextValue();
+        var cpuUsage = _cpuCounter.NextValue() / 100;
         var availableMemory = _availableMemoryCounter.NextValue();
         var usedMemory = _committedBytesCounter.NextValue() / 1000000 - availableMemory;
 
