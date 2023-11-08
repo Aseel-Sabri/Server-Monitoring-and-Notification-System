@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -10,6 +12,7 @@ public class RabbitMQConsumer : IMessageQueueConsumer
 {
     private readonly RabbitMQConfig _config;
     private readonly IConnectionFactory _connectionFactory;
+    private readonly RetryPolicy _retryPolicy;
     private IConnection? _connection;
     private IModel? _channel;
 
@@ -17,13 +20,19 @@ public class RabbitMQConsumer : IMessageQueueConsumer
     {
         _connectionFactory = connectionFactory;
         _config = options.Value;
+        _retryPolicy = Policy
+            .Handle<Exception>()
+            .WaitAndRetry(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
     }
 
     private void CreateChannel()
     {
-        _connection = _connectionFactory.CreateConnection();
-        _channel = _connection.CreateModel();
-        _channel.ExchangeDeclare(exchange: _config.ExchangeName, type: _config.ExchangeType);
+        _retryPolicy.Execute(() =>
+        {
+            _connection = _connectionFactory.CreateConnection();
+            _channel = _connection.CreateModel();
+            _channel.ExchangeDeclare(exchange: _config.ExchangeName, type: _config.ExchangeType);
+        });
     }
 
     public void StartListening<T>(string key, Func<T?, string, Task> messageHandler)
