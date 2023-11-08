@@ -1,0 +1,52 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: always
+    expose:
+      - 27017
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    expose:
+      - 5672
+      - 15672
+  
+  message-processing:
+    image: message_processing:0.0.1
+    container_name: message_processing
+    restart: always
+    expose:
+      - 80
+    environment:
+      WAIT_HOSTS: mongodb:27017, rabbitmq:5672
+      WAIT_SLEEP_INTERVAL: 3
+      MongoDBConfig__ConnectionString: mongodb://mongodb:27017
+      RabbitMQConfig__HostName: rabbitmq
+    depends_on:
+      - rabbitmq
+      - mongodb
+    
+  server-statistics-collection:
+    image: server_statistics_collection:0.0.1
+    container_name: server_statistics_collection
+    restart: always
+    environment:
+      WAIT_HOSTS: rabbitmq:5672
+      WAIT_SLEEP_INTERVAL: 3
+      RabbitMQConfig__HostName: rabbitmq
+    depends_on:
+      - rabbitmq
+    
+  signalr-event-consumer:
+    image: signalr_event_consumer:0.0.1
+    container_name: signalr_event_consumer
+    restart: always
+    environment:
+      SignalRConfig__SignalRUrl: http://message_processing:80/serverHub
+      WAIT_HOSTS: message_processing:80
+      WAIT_SLEEP_INTERVAL: 3
+    depends_on:
+      - message-processing
