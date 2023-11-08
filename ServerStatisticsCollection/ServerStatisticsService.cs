@@ -8,25 +8,18 @@ public class ServerStatisticsService : BackgroundService
 {
     private readonly ILogger<ServerStatisticsService> _logger;
     private readonly IMessageQueuePublisher _publisher;
+    private readonly IServerStatisticsCollector _statisticsCollector;
     private readonly string _topic;
     private readonly int _samplingIntervalMs;
-    private readonly PerformanceCounter _cpuCounter;
-    private readonly PerformanceCounter _availableMemoryCounter;
-    private readonly PerformanceCounter _committedBytesCounter;
-
 
     public ServerStatisticsService(ILogger<ServerStatisticsService> logger, IOptions<ServerStatisticsConfig> options,
-        IMessageQueuePublisher publisher)
+        IMessageQueuePublisher publisher, IServerStatisticsCollector statisticsCollector)
     {
         _logger = logger;
         _publisher = publisher;
+        _statisticsCollector = statisticsCollector;
         _topic = $"ServerStatistics.{options.Value.ServerIdentifier}";
         _samplingIntervalMs = options.Value.SamplingIntervalSeconds * 1000;
-
-        // TODO
-        _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-        _availableMemoryCounter = new PerformanceCounter("Memory", "Available MBytes");
-        _committedBytesCounter = new PerformanceCounter("Memory", "Committed Bytes");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -51,9 +44,9 @@ public class ServerStatisticsService : BackgroundService
 
     private ServerStatistics GetServerStatistics()
     {
-        var cpuUsage = _cpuCounter.NextValue() / 100;
-        var availableMemory = _availableMemoryCounter.NextValue();
-        var usedMemory = _committedBytesCounter.NextValue() / 1000000 - availableMemory;
+        var cpuUsage = _statisticsCollector.GetCpuUsage();
+        var availableMemory = _statisticsCollector.GetAvailableMemory();
+        var usedMemory = _statisticsCollector.GetUsedMemory();
 
         return new ServerStatistics()
         {

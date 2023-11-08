@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>dotnet-ServerStatisticsCollectionService-4128A7A2-DE19-4644-B077-47F87F98DA9F</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <RootNamespace>ServerStatisticsCollection</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

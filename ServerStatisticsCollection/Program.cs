@@ -17,6 +17,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                 DispatchConsumersAsync = true
             })
             .AddSingleton<IMessageQueuePublisher, RabbitMQPublisher>()
+            .AddSingleton<IServerStatisticsCollector, WindowsStatisticsCollector>()
             .AddHostedService<ServerStatisticsService>();
     })
     .Build();
