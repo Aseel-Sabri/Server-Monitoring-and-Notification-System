@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using SignalREventConsumer;
 
 IHost host = Host.CreateDefaultBuilder(args)
+    .ConfigureAppConfiguration(builder => { builder.AddEnvironmentVariables(); })
     .ConfigureServices((hostContext, services) =>
     {
         IConfiguration configuration = hostContext.Configuration;

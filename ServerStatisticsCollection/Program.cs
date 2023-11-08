@@ -3,10 +3,10 @@ using RabbitMQ.Client;
 using ServerStatisticsCollection;
 
 IHost host = Host.CreateDefaultBuilder(args)
+    .ConfigureAppConfiguration(builder => { builder.AddEnvironmentVariables(); })
     .ConfigureServices((hostContext, services) =>
     {
         IConfiguration configuration = hostContext.Configuration;
-
         var configSection = configuration.GetSection(nameof(RabbitMQConfig));
         services
             .Configure<RabbitMQConfig>(configSection)

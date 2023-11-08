@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
 
 var configuration = builder.Configuration;
+configuration.AddEnvironmentVariables();
 var rabbitMqConfigSection = configuration.GetSection(nameof(RabbitMQConfig));
 
 builder.Services
